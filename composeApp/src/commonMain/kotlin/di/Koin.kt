@@ -4,9 +4,10 @@ import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
-import ui.logic.generationQR.GenerateViewModel
-import ui.logic.generationQR.KeyManagerGeneration
-import ui.logic.scannerQR.ScannerViewModel
+import domain.generationQR.GenerateViewModel
+import domain.generationQR.KeyManagerGeneration
+import domain.scannerQR.KeyManagerScanner
+import domain.scannerQR.ScannerViewModel
 
 fun initKoin(
     appDeclaration: KoinAppDeclaration = {}
@@ -25,4 +26,7 @@ val Koin.scannerViewModel: ScannerViewModel
     get() = get()
 
 val Koin.keyManagerGeneration: KeyManagerGeneration
+    get() = get()
+
+val Koin.keyManagerScanner: KeyManagerScanner
     get() = get()

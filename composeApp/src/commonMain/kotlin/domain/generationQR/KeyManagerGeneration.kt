@@ -1,4 +1,4 @@
-package ui.logic.generationQR
+package domain.generationQR
 
 import QrKey
 import data.QrData

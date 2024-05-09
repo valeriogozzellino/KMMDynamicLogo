@@ -1,6 +1,5 @@
-package ui.logic.generationQR
+package domain.generationQR
 
-import QrKey
 import androidx.compose.ui.graphics.ImageBitmap
 import io.github.aakira.napier.Napier
 import qrgenerator.generateQrCode
@@ -25,18 +24,12 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
      * */
     private val listInputQr = mutableListOf<QrData>() //contains all QrKey in order, need to make this random?
     private val _qrCodes = MutableStateFlow<ImageBitmap?>(null) //is the qr seen in the view
-    //private val listQrKey = mutableListOf<QrKey>()
-
     private val listQrImg = mutableListOf<ImageBitmap>()
-    private val tmpListQrImg = mutableListOf<ImageBitmap>()
-    private var tmpKey = 0
-    private val _endGeneration = MutableStateFlow(false) //start generation of qrCode
 
     /**
      * immutable variables that cannot be modify from external components
      * */
     val qrCodes = _qrCodes.asStateFlow()
-    var endGeneration = _endGeneration.asStateFlow()
 
     /**
      * generation of qr Code

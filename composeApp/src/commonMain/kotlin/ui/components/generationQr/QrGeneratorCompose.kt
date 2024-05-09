@@ -16,13 +16,9 @@ import androidx.compose.ui.unit.dp
 import ui.components.generationQr.QRCodeViewer
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
-import ui.logic.generationQR.GenerateViewModel
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
-import io.github.aakira.napier.Napier
-import ui.logic.generationQR.KeyManagerGeneration
+import domain.generationQR.KeyManagerGeneration
 
 /**
  * used buisness login to implements a qr code, used libs to generated qr code e defined Bitimage

@@ -1,4 +1,4 @@
-package chaintech.qrkit.demo.ui
+package ui.components.scannerQr
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,36 +21,122 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
 import qrscanner.QrScanner
-import ui.logic.scannerQR.ScannerViewModel
+import domain.scannerQR.ScannerViewModel
+import kmpImagePicker.AlertMessageDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import platform.PermissionCallback
+import platform.createPermissionsManager
+import platform.models.PermissionStatus
+import platform.models.PermissionType
+import platform.rememberCameraManager
 
 @Composable
 fun QrScannerCompose(
     navController: NavController,
     scannerViewModel: ScannerViewModel = koinInject()
 ) {
-    Napier.d("TEST : sono nello scanner ")
 
+
+
+    /**
+     * POSSIBILE PROBLEMA; RISOLVERE LA PARALLELIZZA TRA LA SCANNERIZZAZIONE E IL PROSEGUIMENTO DEL FLOW.
+     * VALUTARE SE SI PUò METTERE QRSCANNER DENTRO UNA COROUTINE IN MODO CHE VENGA FATTO
+     * L'OPERAZIONE DI CODIFICA IN MODO PARFALLELO? ANCEH L'APERTURA DELLA CAMERA è DENTRO LO SCANNER QR*/
+    Napier.d("TEST : Son nello scanner ---- 1 ")
+
+    val coroutineScope = rememberCoroutineScope()
     var qrCodeURL by remember { mutableStateOf("") }
     var startBarCodeScan by remember { mutableStateOf(false) }
+    var flashlightOn by remember { mutableStateOf(false) }
+    var launchCamera by remember { mutableStateOf(false) }
+    val qrCodes = scannerViewModel.qrCodesScan.collectAsState()
+    var startScan by remember { mutableStateOf(0) }
+    var permissionRationalDialog by remember { mutableStateOf(value = false) }
+    var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    var launchSetting by remember { mutableStateOf(value = false) }
+
+
+
+    val permissionsManager = createPermissionsManager(object : PermissionCallback {
+        override fun onPermissionStatus(
+            permissionType: PermissionType,
+            status: PermissionStatus
+        ) {
+            when (status) {
+                PermissionStatus.GRANTED -> {
+                    when (permissionType) {
+                        PermissionType.CAMERA -> launchCamera = true
+                    }
+                }
+
+                else -> {
+                    permissionRationalDialog = true
+                }
+            }
+        }
+
+    })
+
+    val cameraManager = rememberCameraManager {
+        coroutineScope.launch {
+            val bitmap = withContext(Dispatchers.Default) {
+                it?.toImageBitmap()
+            }
+            imageBitmap = bitmap
+        }
+    }
+
+    if (launchCamera) {
+        if (permissionsManager.isPermissionGranted(PermissionType.CAMERA)) {
+            cameraManager.launch()
+        } else {
+            permissionsManager.askPermission(PermissionType.CAMERA)
+        }
+        launchCamera = false
+    }
+
+    if (launchSetting) {
+        permissionsManager.launchSettings()
+        launchSetting = false
+    }
+
+    if (permissionRationalDialog) {
+        AlertMessageDialog(title = "Permission Required",
+            message = "To set your profile picture, please grant this permission. You can manage permissions in your device settings.",
+            positiveButtonText = "Settings",
+            negativeButtonText = "Cancel",
+            onPositiveClick = {
+                permissionRationalDialog = false
+                launchSetting = true
+
+            },
+            onNegativeClick = {
+                permissionRationalDialog = false
+            })
+
+    }
 
     Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-        Napier.d("TEST :------ 2 -------- ")
         Column(
             modifier = Modifier
                 .background(color = Color.White)
@@ -60,6 +146,7 @@ fun QrScannerCompose(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (startBarCodeScan) {
+                Napier.d("TEST :------- DENTRO IF -----")
                 Column(
                     modifier = Modifier
                         .background(color = Color.Black)
@@ -76,39 +163,47 @@ fun QrScannerCompose(
                         contentAlignment = Alignment.Center
                     ) {
 
-                        /*--- function of library used to read QR ----*/
-                        ScanQr()
+
+
 
                     }
                 }
             } else {
+                Napier.d("TEST :------- DENTRO ELSE -----")
                 /*--- if qr code is scanned or is the first time in the app --- */
-                Napier.d("TEST :------ 3 -------- ")
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    /*--- click to scan again ---*/
-                    Button(
-                        onClick = {
-                            startBarCodeScan = true
-                            qrCodeURL = ""
-                        },
+                if (startScan == 1) {
+                    Napier.d("TEST :------- DENTRO ELSE--> IF -----")
+                    startBarCodeScan = true
+                    launchCamera = true
+                } else {
+                    Napier.d("TEST :------- DENTRO ELSE--> ELSE -----")
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+
+                        /*--- click to scan again ---*/
+                        Button(
+                            onClick = {
+                                launchCamera = true
+                                //startBarCodeScan = true
+                                qrCodeURL = ""
+                            },
+                        ) {
+                            Text(
+                                text = "Scan Qr",
+                                modifier = Modifier.background(Color.Transparent)
+                                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                                fontSize = 16.sp
+                            )
+                        }
+
                         Text(
-                            text = "Scan Qr",
-                            modifier = Modifier.background(Color.Transparent)
-                                .padding(horizontal = 12.dp, vertical = 12.dp),
-                            fontSize = 16.sp
+                            text = qrCodeURL,
+                            color = Color.Black,
+                            modifier = Modifier.padding(top = 12.dp)
                         )
                     }
-
-                    Text(
-                        text = qrCodeURL,
-                        color = Color.Black,
-                        modifier = Modifier.padding(top = 12.dp)
-                    )
                 }
             }
         }
@@ -131,29 +226,3 @@ fun QrScannerCompose(
 
 }
 
-@Composable
-fun ScanQr() {
-    var flashlightOn by remember { mutableStateOf(false) }
-    var launchGallery by remember { mutableStateOf(value = false) }
-    var qrCodeURL by remember { mutableStateOf("") }
-
-    QrScanner(
-        modifier = Modifier
-            .clipToBounds()
-            .clip(shape = RoundedCornerShape(size = 14.dp)),
-        flashlightOn = flashlightOn,
-        launchGallery = launchGallery,
-        onCompletion = {
-            //Napier.d("TEST : STampo il contenuto del QR: ${scannerViewModel.base64Decoded(it)}")
-            qrCodeURL = it
-            scannerViewModel.analyseKey(it)
-            //startBarCodeScan = true
-        },
-        onGalleryCallBackHandler = {
-            launchGallery = it
-        },
-        onFailure = {
-            Napier.d("TEST : ERROR scan QR code : $it")
-        }
-    )
-}

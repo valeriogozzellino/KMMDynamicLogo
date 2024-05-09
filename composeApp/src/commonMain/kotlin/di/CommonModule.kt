@@ -5,9 +5,10 @@ import io.github.aakira.napier.Napier
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-import ui.logic.generationQR.GenerateViewModel
-import ui.logic.generationQR.KeyManagerGeneration
-import ui.logic.scannerQR.ScannerViewModel
+import domain.generationQR.GenerateViewModel
+import domain.generationQR.KeyManagerGeneration
+import domain.scannerQR.ScannerViewModel
+import domain.scannerQR.KeyManagerScanner
 
 /*creo le dipendenze in questo file
  single serve per istanziare una sola entita di questa classe
@@ -19,9 +20,11 @@ fun commonModule() = module {
     singleOf(::GenerateViewModel)
     singleOf(::ScannerViewModel)
     singleOf(::KeyManagerGeneration)
+    singleOf(::KeyManagerScanner)
     Napier.base(DebugAntilog())
 }
 
 expect fun platformModule(): Module
 
 
+expect fun startScanQr()

@@ -18,10 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
-import io.github.aakira.napier.Napier
 import org.koin.compose.koinInject
-import ui.logic.generationQR.GenerateViewModel
-import ui.logic.generationQR.KeyManagerGeneration
+import domain.generationQR.GenerateViewModel
+import domain.generationQR.KeyManagerGeneration
 
 
 @Composable

@@ -32,6 +32,7 @@ kotlin {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             //library for camera
+            implementation(libs.accompanist.permissions)
             implementation(libs.androidx.camera.camera)
             implementation(libs.androidx.camera.lifecycle)
             implementation(libs.androidx.camera.view)

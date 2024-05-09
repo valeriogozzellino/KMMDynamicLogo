@@ -1,22 +1,25 @@
-package ui.logic.scannerQR
+package domain.scannerQR
 
-import chaintech.qrkit.demo.ui.QrScannerCompose
-import data.QrData
 import getPlatform
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
-import io.ktor.client.request.post
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.util.decodeBase64String
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import qrscanner.scanImage
 
-class ScannerViewModel() {
+class ScannerViewModel(private val keyManagerScanner: KeyManagerScanner) {
+
+    /**
+     * immutable variables that cannot be modify from external components
+     * */
+    private val _qrCodesScan = MutableStateFlow<Boolean>(false) //is the qr seen in the view
+    val qrCodesScan = _qrCodesScan.asStateFlow()
+
 
     /**
      * send data when it scan all qr in the list
@@ -55,15 +58,10 @@ class ScannerViewModel() {
         }
     }
 
-    /**
-     * can convert base 64 string to string
-     * */
-
-    fun base64Decoded(input: String): String = input.decodeBase64String()
-
-
-    fun analyseKey(qrContent: String) {
+    suspend fun printKey(qrContent: String) {
        Napier.d ("TEST : il contenuto del Qr code è : $qrContent")
+        //keyManagerScanner.composeKey(qrContent)
+        _qrCodesScan.value = !_qrCodesScan.value
     }
 
 

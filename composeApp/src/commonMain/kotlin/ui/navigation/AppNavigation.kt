@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import chaintech.qrkit.demo.ui.QrScannerCompose
+import ui.components.scannerQr.QrScannerCompose
 import io.github.aakira.napier.Napier
 import ui.QrGeneratorCompose
 
@@ -18,6 +18,7 @@ fun AppNavigation () {
             QrScreen(navController)
         }
         composable("scanner") {
+            Napier.d("TEST: entro nello scanner")
             QrScannerCompose(navController)
         }
         composable("generator") {

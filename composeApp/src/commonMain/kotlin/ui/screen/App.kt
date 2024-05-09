@@ -13,7 +13,6 @@ import ui.navigation.AppNavigation
 fun App() {
     MaterialTheme {
         AppNavigation()
-
     }
 }
 
