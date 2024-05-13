@@ -38,44 +38,30 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import io.github.aakira.napier.Napier
 import org.koin.compose.koinInject
-import qrscanner.QrScanner
 import domain.scannerQR.ScannerViewModel
 import kmpImagePicker.AlertMessageDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import platform.CameraPreviewWithQRCodeScanner
 import platform.PermissionCallback
 import platform.createPermissionsManager
 import platform.models.PermissionStatus
 import platform.models.PermissionType
-import platform.rememberCameraManager
 
 @Composable
 fun QrScannerCompose(
     navController: NavController,
     scannerViewModel: ScannerViewModel = koinInject()
 ) {
-
-
-
-    /**
-     * POSSIBILE PROBLEMA; RISOLVERE LA PARALLELIZZA TRA LA SCANNERIZZAZIONE E IL PROSEGUIMENTO DEL FLOW.
-     * VALUTARE SE SI PUò METTERE QRSCANNER DENTRO UNA COROUTINE IN MODO CHE VENGA FATTO
-     * L'OPERAZIONE DI CODIFICA IN MODO PARFALLELO? ANCEH L'APERTURA DELLA CAMERA è DENTRO LO SCANNER QR*/
     Napier.d("TEST : Son nello scanner ---- 1 ")
 
-    val coroutineScope = rememberCoroutineScope()
     var qrCodeURL by remember { mutableStateOf("") }
     var startBarCodeScan by remember { mutableStateOf(false) }
-    var flashlightOn by remember { mutableStateOf(false) }
     var launchCamera by remember { mutableStateOf(false) }
-    val qrCodes = scannerViewModel.qrCodesScan.collectAsState()
-    var startScan by remember { mutableStateOf(0) }
+    val startScan by remember { mutableStateOf(0) }
     var permissionRationalDialog by remember { mutableStateOf(value = false) }
-    var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var launchSetting by remember { mutableStateOf(value = false) }
-
-
 
     val permissionsManager = createPermissionsManager(object : PermissionCallback {
         override fun onPermissionStatus(
@@ -97,7 +83,7 @@ fun QrScannerCompose(
 
     })
 
-    val cameraManager = rememberCameraManager {
+    /*val cameraManager = rememberCameraManager{
         coroutineScope.launch {
             val bitmap = withContext(Dispatchers.Default) {
                 it?.toImageBitmap()
@@ -105,16 +91,7 @@ fun QrScannerCompose(
             imageBitmap = bitmap
         }
     }
-
-    if (launchCamera) {
-        if (permissionsManager.isPermissionGranted(PermissionType.CAMERA)) {
-            cameraManager.launch()
-        } else {
-            permissionsManager.askPermission(PermissionType.CAMERA)
-        }
-        launchCamera = false
-    }
-
+*/
     if (launchSetting) {
         permissionsManager.launchSettings()
         launchSetting = false
@@ -165,6 +142,16 @@ fun QrScannerCompose(
 
 
 
+                        if (launchCamera) {
+                            CameraPreviewWithQRCodeScanner { Napier.d("STAMPO QR: $it") }
+                           /* if (permissionsManager.isPermissionGranted(PermissionType.CAMERA)) {
+                                cameraManager.launch()
+                            } else {
+                                permissionsManager.askPermission(PermissionType.CAMERA)
+                            }*/
+                            //launchCamera = false
+                        }
+
 
                     }
                 }
@@ -186,7 +173,7 @@ fun QrScannerCompose(
                         Button(
                             onClick = {
                                 launchCamera = true
-                                //startBarCodeScan = true
+                                startBarCodeScan = true
                                 qrCodeURL = ""
                             },
                         ) {
