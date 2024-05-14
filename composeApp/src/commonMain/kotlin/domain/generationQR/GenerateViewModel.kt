@@ -86,12 +86,13 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
         coroutineScope {
             launch(Dispatchers.Default) {
                 //val randomKey = (0..listQrKey.lastIndex).random()
+                Napier.d("TEST :numero di QR CREATI : ${listInputQr.size-1}")
                 for(element in listQrImg){
 
                     Napier.d("TEST : SONO NEL FOR IN RANDOM SEQUENCE")
                     _qrCodes.value = element
 
-                    delay(200)
+                    //delay(100)
 
                 }
             }

@@ -2,32 +2,79 @@ package domain.scannerQR
 
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64String
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class KeyManagerScanner() {
 
+    var totalKey = 0
+    var arrayChunk = arrayOf<String>()
+    private val _endScanner = MutableStateFlow(false)
+    var endScanner = _endScanner.asStateFlow()
+
     /**
      * recompose KEY from qr code*/
-    suspend fun  composeKey(qrContent: String) {
-        coroutineScope {
-            launch(Dispatchers.Default) {
-                val qrData = getContent( base64Decoded(qrContent))
-                Napier.d("il contenuto del QR è : $qrData")
+    fun composeKey(qrContent: String) {
+        //check end scan
+        //checkEndScan()
+        //convert key and decompose
+        val qrData = getContent(base64Decoded(qrContent))
+        totalKey = getTotalStep(qrContent.split("::"))
+        arrayChunk = Array(totalKey) { "" }  // Ogni elemento è una stringa vuota
+        val actualStep = getStep(qrContent.split("::"))
+        Napier.d("TEST: in KEY MANAGER -->  il contenuto del QR è : $qrData")
+
+        arrayChunk[actualStep] = qrData
+    }
+
+    /**
+     * step 1
+     * convert base 64 string to string
+     * */
+    private fun base64Decoded(input: String): String = input.decodeBase64String()
+
+    /**
+     * step 2
+     * */
+    private fun getContent(s: String): String {
+
+        val parti = s.split("::")
+
+        if (parti.size > 1) {
+
+            if (totalKey == 0) {
+                getTotalStep(parti)
             }
+
+            return parti[1]
+
+        } else {
+
+            return ""
+
         }
     }
 
     /**
-     * can convert base 64 string to string
+     *
      * */
-
-    private fun base64Decoded(input: String): String = input.decodeBase64String()
-
-    private fun getContent (s: String): String {
-
-        val parti = s.split("::")
-        return if (parti.size > 1) parti[1] else ""
+    private fun getTotalStep(parti: List<String>): Int {
+        val step = parti[0].split("__")
+        return step[1].toInt()
     }
+
+    /**
+     *
+     * */
+    private fun getStep(parti: List<String>): Int {
+        val step = parti[0].split("__")
+        return step[0].toInt()
+    }
+
+
+    /**
+     * check if all QRCode were scanned*/
+   /* private fun checkEndScan() {
+        _endScanner.value = (arrayChunk.size - 1 == totalKey)
+    }*/
 }

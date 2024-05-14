@@ -36,6 +36,7 @@ class KeyManagerGeneration() {
             val newChunks = splitString(it.key, (1..3).random())
             listChucks.addAll(newChunks)
         }
+        Napier.d("TEST : NUMERO CHUNCKS GENERATI: ${listChucks.size-1}")
     }
 
 

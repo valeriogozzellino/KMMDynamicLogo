@@ -1,173 +1,158 @@
 package platform
 
-import android.annotation.SuppressLint
-import android.content.ContentResolver
-import android.graphics.ImageFormat
-import android.net.Uri
-import android.util.Log
 import android.view.ViewGroup
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.BinaryBitmap
-import com.google.zxing.DecodeHintType
-import com.google.zxing.MultiFormatReader
-import com.google.zxing.NotFoundException
-import com.google.zxing.PlanarYUVLuminanceSource
-import com.google.zxing.common.HybridBinarizer
-import platform.kmp.image.picker.ComposeFileProvider
-import platform.utils.SharedImageOps
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import io.github.aakira.napier.Napier
+import platform.utils.QRCodeAnalyzer
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.runtime.LaunchedEffect
 
-/*
-@Composable
-actual fun rememberCameraManager(onQRCodeDetected: (String) -> Unit): CameraManager {
-    //questa funzione deve implementare ua normale scansione in Android
-    //GUARDARE VIDEO SU YOUTUBE PER LA SCANSIONE
-    val context = LocalContext.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    val contentResolver: ContentResolver = context.contentResolver
-    val cameraProvider = cameraProviderFuture.get()
-    val imageAnalysis = ImageAnalysis.Builder()
-        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-        .build()
-        .also {
-            it.setAnalyzer(ContextCompat.getMainExecutor(context), QRCodeAnalyzer { result ->
-                onQRCodeDetected(result)
-            })
-        }
-
-    try {
-        cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(
-            lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis
-        )
-    } catch (exc: Exception) {
-        Log.e("CameraPreview", "Use case binding failed", exc)
-    }
-   */
-/* var tempPhotoUri by remember { mutableStateOf(value = Uri.EMPTY) }
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                onResult.invoke(BitmapUtils.getBitmapFromUri(tempPhotoUri, contentResolver)
-                    ?.let { SharedImageOps(it) })
-            }
-        }
-    )*//*
-
-    return remember {
-        CameraManager(
-            onLaunch = {
-                tempPhotoUri = ComposeFileProvider.getImageUri(context)
-                cameraLauncher.launch(tempPhotoUri)
-            }
-        )
-    }
-}
-*/
-
-/*actual class CameraManager actual constructor(
-    private val onLaunch: () -> Unit
-) {
-    actual fun launch() {
-        onLaunch()
-    }
-}*/
-
-
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 actual fun CameraPreviewWithQRCodeScanner(onQRCodeDetected: (String) -> Unit) {
-    val context = LocalContext.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    val lifecycleOwner = LocalLifecycleOwner.current //collegato al ciclo di vita della UI
+    val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(
-            factory = { ctx ->
-                val previewView = PreviewView(ctx).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                }
+    // Verifica i permessi non appena il composable viene caricato
+    LaunchedEffect(key1 = Unit) {
+        if (!cameraPermissionState.status.isGranted) {
+            cameraPermissionState.launchPermissionRequest()
+        }
+    }
 
-                val cameraProvider = cameraProviderFuture.get()
-                val preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-                val imageAnalysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                    .also {
-                        it.setAnalyzer(ContextCompat.getMainExecutor(ctx), QRCodeAnalyzer { result ->
-                            onQRCodeDetected(result)
-                        })
-                    }
-
-                try {
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis
-                    )
-                } catch (exc: Exception) {
-                    Log.e("CameraPreview", "Use case binding failed", exc)
-                }
-
-                previewView
-            },
-            modifier = Modifier.fillMaxSize()
-        )
-
-        // Optional: Display an overlay or message if needed
+    if (cameraPermissionState.status.isGranted) {
+        // Camera preview
+        PreviewCamera(onQRCodeDetected)
+    } else {
+        // Mostra schermata di richiesta permesso
+        NoPermissionScreen(onRequestPermission = { cameraPermissionState.launchPermissionRequest() })
     }
 }
 
-class QRCodeAnalyzer(private val onQRCodeDetected: (String) -> Unit) : ImageAnalysis.Analyzer {
-    private val qrCodeReader = MultiFormatReader().apply {
-        val hints = mapOf<DecodeHintType, Any>(DecodeHintType.POSSIBLE_FORMATS to listOf(
-            BarcodeFormat.QR_CODE))
-        setHints(hints)
-    }
+@Composable
+private fun MainContent(
+    hasPermission: Boolean,
+    onRequestPermission: () -> Unit,
+    onQRCodeDetected: (String) -> Unit
+) {
+    Napier.d("TEST : ------ 1 ------")
 
-    @SuppressLint("UnsafeOptInUsageError")
-    override fun analyze(imageProxy: ImageProxy) {
-        if (imageProxy.format == ImageFormat.YUV_420_888) {
-            val byteBuffer = imageProxy.planes[0].buffer
-            val imageData = ByteArray(byteBuffer.capacity())
-            byteBuffer.get(imageData)
-            val source = PlanarYUVLuminanceSource(
-                imageData, imageProxy.width, imageProxy.height, 0, 0, imageProxy.width, imageProxy.height, false
+    if (hasPermission){
+        PreviewCamera(onQRCodeDetected)
+    }else{
+        NoPermissionScreen { onRequestPermission }
+    }
+}
+
+
+
+@Composable
+fun PreviewCamera(onQRCodeDetected: (String) -> Unit) {
+        val context = LocalContext.current
+        val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+        val lifecycleOwner = LocalLifecycleOwner.current //collegato al ciclo di vita della UI
+
+        Napier.d("TEST : sono dentro cameraView")
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            AndroidView(
+                factory = { ctx ->
+                    val previewView = PreviewView(ctx).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    }
+
+                    val cameraProvider = cameraProviderFuture.get()
+                    val preview = Preview.Builder().build().also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+
+                    val imageAnalysis = ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                        .also {
+                            it.setAnalyzer(
+                                ContextCompat.getMainExecutor(ctx),
+                                QRCodeAnalyzer { result ->
+                                    onQRCodeDetected(result)
+                                })
+                        }
+
+                    try {
+                        Napier.d("TEST : sono NEL TRy")
+
+                        cameraProvider.unbindAll()
+                        cameraProvider.bindToLifecycle(
+                            lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis
+                        )
+                    } catch (exc: Exception) {
+                        Napier.e("TEST error : $exc")
+                    }
+
+                    previewView
+                },
+                modifier = Modifier.fillMaxSize()
             )
-            val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
-            try {
-                val result = qrCodeReader.decodeWithState(binaryBitmap)
-                onQRCodeDetected(result.text)
-            } catch (e: NotFoundException) {
-                // QR Code not found
-            } finally {
-                imageProxy.close()
-            }
+
+        }
+
+}
+
+@Composable
+fun NoPermissionScreen(
+    onRequestPermission: () -> Unit
+) {
+
+    NoPermissionContent(
+        onRequestPermission = onRequestPermission
+    )
+}
+
+@Composable
+private fun NoPermissionContent(
+    onRequestPermission: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Please grant the permission to use the camera to use the core functionality of this app.")
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { onRequestPermission() }) {
+            Icon(imageVector = Icons.Default.AccountBox, contentDescription = "Camera")
+            Text(text = "Grant permission")
         }
     }
 }
-

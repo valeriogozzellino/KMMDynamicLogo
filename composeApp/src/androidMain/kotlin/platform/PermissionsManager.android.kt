@@ -56,7 +56,6 @@ actual class PermissionsManager actual constructor(private val callback: Permiss
         }
     }
 
-
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
     override fun isPermissionGranted(permission: PermissionType): Boolean {

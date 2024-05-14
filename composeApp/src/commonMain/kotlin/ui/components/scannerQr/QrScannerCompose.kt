@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import domain.scannerQR.KeyManagerScanner
 import io.github.aakira.napier.Napier
 import org.koin.compose.koinInject
 import domain.scannerQR.ScannerViewModel
@@ -52,7 +53,8 @@ import platform.models.PermissionType
 @Composable
 fun QrScannerCompose(
     navController: NavController,
-    scannerViewModel: ScannerViewModel = koinInject()
+    scannerViewModel: ScannerViewModel = koinInject(),
+    keyManagerScanner: KeyManagerScanner = koinInject()
 ) {
     Napier.d("TEST : Son nello scanner ---- 1 ")
 
@@ -62,6 +64,15 @@ fun QrScannerCompose(
     val startScan by remember { mutableStateOf(0) }
     var permissionRationalDialog by remember { mutableStateOf(value = false) }
     var launchSetting by remember { mutableStateOf(value = false) }
+    val endScanner = keyManagerScanner.endScanner.collectAsState()
+
+    //se la scannerizzazione è terminata ed è validato il token --> navigo
+    /*LaunchedEffect(endScanner){
+        if(endScanner.value){
+            navController.navigate("home")
+        }
+    }*/
+
 
     val permissionsManager = createPermissionsManager(object : PermissionCallback {
         override fun onPermissionStatus(
@@ -83,15 +94,6 @@ fun QrScannerCompose(
 
     })
 
-    /*val cameraManager = rememberCameraManager{
-        coroutineScope.launch {
-            val bitmap = withContext(Dispatchers.Default) {
-                it?.toImageBitmap()
-            }
-            imageBitmap = bitmap
-        }
-    }
-*/
     if (launchSetting) {
         permissionsManager.launchSettings()
         launchSetting = false
@@ -123,7 +125,6 @@ fun QrScannerCompose(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (startBarCodeScan) {
-                Napier.d("TEST :------- DENTRO IF -----")
                 Column(
                     modifier = Modifier
                         .background(color = Color.Black)
@@ -144,12 +145,6 @@ fun QrScannerCompose(
 
                         if (launchCamera) {
                             CameraPreviewWithQRCodeScanner { Napier.d("STAMPO QR: $it") }
-                           /* if (permissionsManager.isPermissionGranted(PermissionType.CAMERA)) {
-                                cameraManager.launch()
-                            } else {
-                                permissionsManager.askPermission(PermissionType.CAMERA)
-                            }*/
-                            //launchCamera = false
                         }
 
 
