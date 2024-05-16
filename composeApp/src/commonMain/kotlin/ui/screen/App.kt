@@ -7,7 +7,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import ui.navigation.AppNavigation
 
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 @Preview
 fun App() {

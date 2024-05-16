@@ -1,5 +1,6 @@
 package ui.components.scannerQr
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,31 +9,36 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -40,16 +46,12 @@ import domain.scannerQR.KeyManagerScanner
 import io.github.aakira.napier.Napier
 import org.koin.compose.koinInject
 import domain.scannerQR.ScannerViewModel
-import kmpImagePicker.AlertMessageDialog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import platform.CameraPreviewWithQRCodeScanner
-import platform.PermissionCallback
-import platform.createPermissionsManager
-import platform.models.PermissionStatus
-import platform.models.PermissionType
+import kotlinqrcodeproject.composeapp.generated.resources.Res
+import kotlinqrcodeproject.composeapp.generated.resources.start_scanning
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun QrScannerCompose(
     navController: NavController,
@@ -74,7 +76,7 @@ fun QrScannerCompose(
     }*/
 
 
-    val permissionsManager = createPermissionsManager(object : PermissionCallback {
+    /*val permissionsManager = createPermissionsManager(object : PermissionCallback {
         override fun onPermissionStatus(
             permissionType: PermissionType,
             status: PermissionStatus
@@ -113,7 +115,7 @@ fun QrScannerCompose(
                 permissionRationalDialog = false
             })
 
-    }
+    }*/
 
     Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         Column(
@@ -121,70 +123,79 @@ fun QrScannerCompose(
                 .background(color = Color.White)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (startBarCodeScan) {
-                Column(
-                    modifier = Modifier
-                        .background(color = Color.Black)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(250.dp)
-                            .clip(shape = RoundedCornerShape(size = 14.dp))
-                            .clipToBounds()
-                            .border(2.dp, Color.Gray, RoundedCornerShape(size = 14.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
 
+                QrScannerScreen(navController)
 
-
-                        if (launchCamera) {
-                            CameraPreviewWithQRCodeScanner { Napier.d("STAMPO QR: $it") }
-                        }
-
-
-                    }
-                }
             } else {
-                Napier.d("TEST :------- DENTRO ELSE -----")
                 /*--- if qr code is scanned or is the first time in the app --- */
                 if (startScan == 1) {
-                    Napier.d("TEST :------- DENTRO ELSE--> IF -----")
                     startBarCodeScan = true
                     launchCamera = true
                 } else {
-                    Napier.d("TEST :------- DENTRO ELSE--> ELSE -----")
                     Column(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
-                        /*--- click to scan again ---*/
-                        Button(
-                            onClick = {
-                                launchCamera = true
-                                startBarCodeScan = true
-                                qrCodeURL = ""
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    text = "QR Code Project",
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
                             },
+                            navigationIcon = {
+                                IconButton(onClick = {navController.navigate("screen") }) {
+                                    Icon(Icons.Filled.ArrowBack, contentDescription = "Menu")
+                                }
+                            },
+                            backgroundColor = Color(0xFF4A90E2),
+                            contentColor = Color.White,
+                            elevation = 4.dp
+                        )
+                        Column(
+                            modifier = Modifier.padding(top = 120.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            Image(
+                                painter = painterResource(
+                                    resource = Res.drawable.start_scanning
+                                ),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(top = 20.dp)
+                                    .width(160.dp)
+                                    .height(200.dp)
+                            )
+                            /*--- click to scan again ---*/
+                            Button(
+                                onClick = {
+                                    launchCamera = true
+                                    startBarCodeScan = true
+                                    qrCodeURL = ""
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = Color(0xFF4A90E2),
+                                    contentColor = Color.White
+                                ),
+                            ) {
+                                Text(
+                                    text = "Scan Qr",
+                                    modifier = Modifier.background(Color.Transparent)
+                                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                                    fontSize = 16.sp
+                                )
+                            }
+
                             Text(
-                                text = "Scan Qr",
-                                modifier = Modifier.background(Color.Transparent)
-                                    .padding(horizontal = 12.dp, vertical = 12.dp),
-                                fontSize = 16.sp
+                                text = qrCodeURL,
+                                color = Color.Black,
+                                modifier = Modifier.padding(top = 12.dp)
                             )
                         }
-
-                        Text(
-                            text = qrCodeURL,
-                            color = Color.Black,
-                            modifier = Modifier.padding(top = 12.dp)
-                        )
                     }
                 }
             }

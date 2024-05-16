@@ -33,6 +33,7 @@ import platform.UIKit.UIDeviceOrientationDidChangeNotification
 import platform.UIKit.UIView
 import platform.darwin.*
 import domain.scannerQR.KeyManagerScanner
+import kotlin.time.*
 
 @OptIn(ExperimentalForeignApi::class, DelicateCoroutinesApi::class, BetaInteropApi::class)
 @Composable
@@ -40,6 +41,7 @@ fun QrCodeAnalyzer(
     camera: AVCaptureDevice,
     onQRCodeDetected: (String) -> Unit,
 ) {
+    val timeSource = TimeSource.Monotonic
     val keyManager = KeyManagerScanner()
     val capturePhotoOutput = remember { AVCapturePhotoOutput() }
     var actualOrientation by remember {
@@ -76,6 +78,8 @@ fun QrCodeAnalyzer(
                             fromConnection: AVCaptureConnection,
                         ) {
                             didOutputMetadataObjects.firstOrNull()?.let { metadataObject ->
+                                /*------ MARKER -------*/
+                                val mark1 = timeSource.markNow()
                                 val readableObject =
                                     metadataObject as? AVMetadataMachineReadableCodeObject
 
@@ -85,6 +89,9 @@ fun QrCodeAnalyzer(
                                     Napier.d("TEST : QR detected !!!! === $code \n")
                                     //captureSession.stopRunning() //termina la sessione
                                     //keyManager.composeKey(code) //chiamo la ricomposizione della key del key manager
+
+                                    val mark2 = timeSource.markNow()
+                                    Napier.d("TEST : TIME DETECTED QRCODE IOS  == (${mark2 - mark1})")
                                     onQRCodeDetected.invoke(code)
                                 }
                             }

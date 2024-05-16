@@ -20,7 +20,6 @@ import platform.models.PermissionStatus
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.UIKit.UIApplication
-import platform.models.ImageFromDevice
 
 @Composable
 actual fun createPermissionsManager(callback: PermissionCallback): PermissionsManager {

@@ -14,6 +14,7 @@ class MainActivity : ComponentActivity() {
         initKoin {  }
         setContent {
             App()
+
         }
     }
 }

@@ -111,5 +111,4 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
         }
     }
 
-
 }

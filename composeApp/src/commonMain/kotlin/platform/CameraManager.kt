@@ -1,7 +1,6 @@
 package platform
 
 import androidx.compose.runtime.Composable
-import platform.utils.SharedImageOps
 
 /*@Composable
 expect fun rememberCameraManager(onQRCodeDetected: (String) -> Unit): CameraManager
