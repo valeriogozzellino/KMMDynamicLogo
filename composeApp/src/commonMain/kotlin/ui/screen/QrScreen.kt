@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinqrcodeproject.composeapp.generated.resources.Res
 import kotlinqrcodeproject.composeapp.generated.resources.scanning_icon
-import kotlinqrcodeproject.composeapp.generated.resources.start_scanning
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -36,11 +35,8 @@ import org.jetbrains.compose.resources.painterResource
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun QrScreen(navController: NavController) {
-
-
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            // First box at the top
             TopAppBar(
                 title = {
                     Text(
@@ -49,11 +45,6 @@ fun QrScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth(),
                     )
                 },
-                /*navigationIcon = {
-                    IconButton(onClick = { *//* handle navigation icon click *//* }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Menu")
-                    }
-                },*/
                 backgroundColor = Color(0xFF4A90E2),
                 contentColor = Color.White,
                 elevation = 4.dp
@@ -75,10 +66,10 @@ fun QrScreen(navController: NavController) {
                         text = "Welcome!",
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                             .padding(all = 15.dp),
-                        fontSize = 36.sp,  // Aumentato per un impatto maggiore
+                        fontSize = 36.sp,
                         textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,  // Aggiunto per grassetto
-                        fontStyle = FontStyle.Normal,  // Cambiato in normale per un aspetto più formale
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Normal,
                         fontFamily = FontFamily.SansSerif,
                         color = Color.Black
                     )

@@ -19,21 +19,25 @@ class KeyManagerGeneration() {
 
     /**
      * generation of the key and initialize the list of qr code with chunk
+     * @param qrcontent: key splitted
+     * @param timeValid:  duration where the kwy is valid
      * */
-    fun generateKey(qrContent: String) {
+    fun generateKey(qrContent: String, timeValid: Int) {
         val timeSource = TimeSource.Monotonic
-        key = QrKey(qrContent, timeSource.markNow())
-        generateChunks()
+        key = QrKey(qrContent, timeSource.markNow(), timeValid)
 
+        generateChunks()
         _startGeneration.value = true
     }
 
     /**
      * split key into chunks with the same length
+     * @param
+     * @return
      * */
     private fun generateChunks() {
         key?.let {
-            val newChunks = splitString(it.key, (1..3).random())
+            val newChunks = splitString(it.key, (5..8).random())
             listChucks.addAll(newChunks)
         }
         Napier.d("TEST : NUMERO CHUNCKS GENERATI: ${listChucks.size-1}")
@@ -42,6 +46,8 @@ class KeyManagerGeneration() {
 
     /**
      * add symbols between data
+     * @param input:  QrData To be encripted
+     * @return base64 ecripted data
      * */
     fun generateCriptedData(input: QrData): String {
         val mergedData: String =
@@ -71,22 +77,15 @@ class KeyManagerGeneration() {
 
     /**
      * decode String to Base64
+     * @param
+     * @return
      * */
     private fun base64Encoded(input: String): String = input.encodeBase64()
 
     /**
-     * generate random alphanumeric String using Kotlin library, internet source code
-     * */
-    private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-    private val randomlength = (50..70).random()
-
-    private fun randomStringByKotlinRandom() =
-        (0..randomlength).map { Random.nextInt(0, charPool.size).let { charPool[it] } }
-            .joinToString("")
-
-
-    /**
      * check if the key is still valid
+     * @return
+     *
      * */
     fun checkValid() {
         Napier.d("TEST : KEY IS VALID?--> ${key?.isStillValid()}")
@@ -95,6 +94,8 @@ class KeyManagerGeneration() {
     /**
      * start validation time of the key, it's called in the moment
      * where the last chunk of the key is seen
+     * @param
+     * @retun
      * */
     fun startValidationTime(element: QrData) {
         key?.let {

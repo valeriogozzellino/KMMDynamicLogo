@@ -10,12 +10,6 @@ import domain.generationQR.KeyManagerGeneration
 import domain.scannerQR.ScannerViewModel
 import domain.scannerQR.KeyManagerScanner
 
-/*creo le dipendenze in questo file
- single serve per istanziare una sola entita di questa classe
- la prima volta che questa viene richiesta
- posso anche definire delle interfacce composte che vengono iniettate
- in una classe per avere una maggior efficenza  modularizzazione*/
-
 fun commonModule() = module {
     singleOf(::GenerateViewModel)
     singleOf(::ScannerViewModel)
@@ -27,4 +21,3 @@ fun commonModule() = module {
 expect fun platformModule(): Module
 
 
-expect fun startScanQr()

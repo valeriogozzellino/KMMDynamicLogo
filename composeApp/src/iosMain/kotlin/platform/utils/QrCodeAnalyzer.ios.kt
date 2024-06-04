@@ -33,8 +33,20 @@ import platform.UIKit.UIDeviceOrientationDidChangeNotification
 import platform.UIKit.UIView
 import platform.darwin.*
 import domain.scannerQR.KeyManagerScanner
+import kotlin.concurrent.Volatile
 import kotlin.time.*
 
+@Volatile
+private var isActive =  mutableStateOf(true)
+
+
+
+/**
+ * Analizer of qr code for ios, it creates a session of AVCapture
+ * @param camera: AVCapture device camera
+ * @param onQRCodeDetected: function returned the string of the qr Code
+ * @return
+ * */
 @OptIn(ExperimentalForeignApi::class, DelicateCoroutinesApi::class, BetaInteropApi::class)
 @Composable
 fun QrCodeAnalyzer(
@@ -49,8 +61,6 @@ fun QrCodeAnalyzer(
             AVCaptureVideoOrientationPortrait
         )
     }
-
-    Napier.d("TEST : sono in real device ------")
 
     val captureSession: AVCaptureSession = remember {
         AVCaptureSession().also { captureSession ->
@@ -77,6 +87,9 @@ fun QrCodeAnalyzer(
                             didOutputMetadataObjects: List<*>,
                             fromConnection: AVCaptureConnection,
                         ) {
+                            if (!isActive.value) {
+                                return  // Termina l'analisi se la sessione non è più attiva
+                            }
                             didOutputMetadataObjects.firstOrNull()?.let { metadataObject ->
                                 /*------ MARKER -------*/
                                 val mark1 = timeSource.markNow()
@@ -87,8 +100,7 @@ fun QrCodeAnalyzer(
 
                                 if (!code.isNullOrEmpty()) {
                                     Napier.d("TEST : QR detected !!!! === $code \n")
-                                    //captureSession.stopRunning() //termina la sessione
-                                    //keyManager.composeKey(code) //chiamo la ricomposizione della key del key manager
+                                    keyManager.composeKey(code) //chiamo la ricomposizione della key del key manager
 
                                     val mark2 = timeSource.markNow()
                                     Napier.d("TEST : TIME DETECTED QRCODE IOS  == (${mark2 - mark1})")
@@ -99,7 +111,6 @@ fun QrCodeAnalyzer(
                     }, queue = dispatch_get_main_queue() //gestisce i thread maim
                 )
 
-                //set della lista di metadata accettabili
                 metadataOutput.metadataObjectTypes = listOf(
                     AVMetadataObjectTypeQRCode,
                     AVMetadataObjectTypeMicroQRCode,
@@ -178,4 +189,14 @@ fun QrCodeAnalyzer(
             CATransaction.commit()
         },
     )
+}
+
+
+
+actual fun terminateScanProcess() {
+    isActive.value = false
+}
+
+actual fun startScanProcess() {
+    isActive.value = true
 }

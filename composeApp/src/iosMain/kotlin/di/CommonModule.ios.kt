@@ -6,6 +6,3 @@ actual fun platformModule(): Module {
     TODO("Not yet implemented")
 }
 
-actual fun startScanQr() {
-
-}

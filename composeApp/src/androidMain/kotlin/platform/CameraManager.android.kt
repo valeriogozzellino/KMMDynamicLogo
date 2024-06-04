@@ -64,67 +64,65 @@ private fun MainContent(
 ) {
     Napier.d("TEST : ------ 1 ------")
 
-    if (hasPermission){
+    if (hasPermission) {
         PreviewCamera(onQRCodeDetected)
-    }else{
+    } else {
         NoPermissionScreen { onRequestPermission }
     }
 }
 
 
-
 @Composable
 fun PreviewCamera(onQRCodeDetected: (String) -> Unit) {
-        val context = LocalContext.current
-        val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-        val lifecycleOwner = LocalLifecycleOwner.current //collegato al ciclo di vita della UI
+    val context = LocalContext.current
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current //collegato al ciclo di vita della UI
 
-        Napier.d("TEST : sono dentro cameraView")
+    Napier.d("TEST : sono dentro cameraView")
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            AndroidView(
-                factory = { ctx ->
-                    val previewView = PreviewView(ctx).apply {
-                        layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(
+            factory = { ctx ->
+                val previewView = PreviewView(ctx).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also {
+                        it.setAnalyzer(
+                            ContextCompat.getMainExecutor(ctx),
+                            QRCodeAnalyzer { result ->
+                                onQRCodeDetected(result)
+                            })
                     }
 
-                    val cameraProvider = cameraProviderFuture.get()
-                    val preview = Preview.Builder().build().also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
+                try {
+                    Napier.d("TEST : sono NEL TRy")
 
-                    val imageAnalysis = ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build()
-                        .also {
-                            it.setAnalyzer(
-                                ContextCompat.getMainExecutor(ctx),
-                                QRCodeAnalyzer { result ->
-                                    onQRCodeDetected(result)
-                                })
-                        }
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(
+                        lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis
+                    )
+                } catch (exc: Exception) {
+                    Napier.e("TEST error : $exc")
+                }
 
-                    try {
-                        Napier.d("TEST : sono NEL TRy")
+                previewView
+            },
+            modifier = Modifier.fillMaxSize()
+        )
 
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis
-                        )
-                    } catch (exc: Exception) {
-                        Napier.e("TEST error : $exc")
-                    }
-
-                    previewView
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-
-        }
-
+    }
 }
 
 @Composable
@@ -156,3 +154,4 @@ private fun NoPermissionContent(
         }
     }
 }
+

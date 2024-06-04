@@ -2,7 +2,6 @@ package ui.components.scannerQr
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
@@ -28,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,8 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,10 +43,14 @@ import domain.scannerQR.KeyManagerScanner
 import io.github.aakira.napier.Napier
 import org.koin.compose.koinInject
 import domain.scannerQR.ScannerViewModel
+import kmpImagePicker.AlertMessageDialog
 import kotlinqrcodeproject.composeapp.generated.resources.Res
 import kotlinqrcodeproject.composeapp.generated.resources.start_scanning
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import platform.*
+import platform.models.*
+import platform.utils.startScanProcess
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -69,14 +70,15 @@ fun QrScannerCompose(
     val endScanner = keyManagerScanner.endScanner.collectAsState()
 
     //se la scannerizzazione è terminata ed è validato il token --> navigo
-    /*LaunchedEffect(endScanner){
-        if(endScanner.value){
-            navController.navigate("home")
+    LaunchedEffect(endScanner) {
+        if (endScanner.value) {
+            startBarCodeScan = false
+            //navController.navigate("home")
         }
-    }*/
+    }
 
 
-    /*val permissionsManager = createPermissionsManager(object : PermissionCallback {
+    val permissionsManager = createPermissionsManager(object : PermissionCallback {
         override fun onPermissionStatus(
             permissionType: PermissionType,
             status: PermissionStatus
@@ -115,7 +117,7 @@ fun QrScannerCompose(
                 permissionRationalDialog = false
             })
 
-    }*/
+    }
 
     Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         Column(
@@ -125,7 +127,7 @@ fun QrScannerCompose(
                 .fillMaxSize(),
         ) {
             if (startBarCodeScan) {
-
+                startScanProcess()
                 QrScannerScreen(navController)
 
             } else {
@@ -147,7 +149,7 @@ fun QrScannerCompose(
                                 )
                             },
                             navigationIcon = {
-                                IconButton(onClick = {navController.navigate("screen") }) {
+                                IconButton(onClick = { navController.navigate("screen") }) {
                                     Icon(Icons.Filled.ArrowBack, contentDescription = "Menu")
                                 }
                             },

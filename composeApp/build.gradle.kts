@@ -15,6 +15,7 @@ kotlin {
         }
     }
 
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -59,7 +60,6 @@ kotlin {
             implementation("io.github.g0dkar:qrcode-kotlin:4.1.1")
             implementation("com.google.zxing:core:3.5.2")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.3.2")
-
         }
         iosMain{}
     }
@@ -67,7 +67,7 @@ kotlin {
 
 android {
     namespace = "org.example.project"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdkVersion(libs.versions.android.compileSdk.get().toInt())
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
@@ -94,6 +94,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
     }

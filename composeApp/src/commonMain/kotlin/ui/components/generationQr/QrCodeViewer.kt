@@ -30,6 +30,7 @@ import androidx.navigation.NavController
 import org.koin.compose.koinInject
 import domain.generationQR.GenerateViewModel
 import domain.generationQR.KeyManagerGeneration
+import io.github.aakira.napier.Napier
 
 
 @Composable
@@ -41,8 +42,11 @@ fun QRCodeViewer(
     val qrCodes = generateViewModel.qrCodes.collectAsState()
     val startQrGeneration = keyManagerGeneration.startGeneration.collectAsState()
 
-    LaunchedEffect(Unit){
-        keyManagerGeneration.generateKey("Valerio-Gozzellino-995974-08/04/02-Asti-Calamandrana-Studente-informatica")
+    LaunchedEffect(Unit) {
+        keyManagerGeneration.generateKey(
+            "Valerio-Gozzellino-995974-08/04/02-Asti-Calamandrana-Studente-informatica",
+            10
+        )
     }
 
     LaunchedEffect(startQrGeneration) {
@@ -50,6 +54,10 @@ fun QRCodeViewer(
             generateViewModel.generateListInputQr(keyManagerGeneration.listChucks)
             generateViewModel.generateQrCode()
         }
+    }
+
+    LaunchedEffect(Unit) {
+        generateViewModel.generateVisualizationUI()
     }
 
     Column(

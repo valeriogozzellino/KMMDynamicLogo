@@ -37,7 +37,6 @@ fun QrGeneratorCompose(
     keyManagerGeneration: KeyManagerGeneration = koinInject(),
 ) {
 
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
