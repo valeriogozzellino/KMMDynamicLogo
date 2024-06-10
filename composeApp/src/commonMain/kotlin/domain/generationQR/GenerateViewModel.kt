@@ -43,6 +43,7 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
      * */
     suspend fun generateQrCode() {
 
+        val mark1 = timeSource.markNow()
         var tmpQrData: ImageBitmap? = null
         coroutineScope {
             launch(Dispatchers.Default) {
@@ -50,7 +51,6 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
                 /*------- start generation time -------*/
                 startTimeGeneration = timeSource.markNow()
                 for (element in listInputQr) {
-                    val mark1 = timeSource.markNow()
                     generateQrCode(
                         keyManagerGeneration.generateCriptedData(element),
                         onSuccess = { _, qrCode ->
@@ -60,7 +60,8 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
                             Napier.d("TEST : FAILS GENERATION QR")
                         }
                     )
-                    val mark2 = timeSource.markNow()
+                    val mark2 =
+                        timeSource.markNow() //tempo impirgato da inizio codice a generazione
                     Napier.d("TEST : TIME GENERATION ONE  == (${mark2 - mark1})")
 
                     /*------ add to a list of qr code ------*/
@@ -102,6 +103,7 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
         coroutineScope {
             launch(Dispatchers.Default) {
                 Napier.d("TEST :numero di QR CREATI : ${listInputQr.size - 1}")
+                val mark1 = timeSource.markNow() //start tempo di visualizzazione
 
                 while (true) {
                     Napier.d("TEST : sono nel while ")
@@ -109,7 +111,6 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
                     if (startVisualization) {
                         listQrImg.size
                         for (index in listInputQr.indices) {
-                            val mark1 = timeSource.markNow()
                             if (startTimeGeneration.elapsedNow() >= durationLimit) {
                                 Napier.d("TEST : --- TEMPO VISUALIZZAZIONE TERMINATO ----")
                                 return@launch
@@ -124,6 +125,8 @@ class GenerateViewModel(private val keyManagerGeneration: KeyManagerGeneration) 
                     }
                     delay(300)
                 }
+                val mark3 = timeSource.markNow()
+                Napier.d("TEST : TEMPO TOTALE DI VISUALIZZAZIONE  : (${mark3 - mark1})")
             }
         }
 
